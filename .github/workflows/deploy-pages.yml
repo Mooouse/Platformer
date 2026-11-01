@@ -27,6 +27,10 @@ jobs:
         uses: actions/configure-pages@v5
         with:
           enablement: true
+      - name: Verify handcrafted VFX
+        run: node --check game.js && node tools/check.mjs custom
+      - name: Generate visual-review contact sheets
+        run: node tools/render.mjs custom --max 12 --zoom 2
       - name: Package static game
         uses: actions/upload-pages-artifact@v3
         with:
