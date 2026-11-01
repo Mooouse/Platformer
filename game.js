@@ -1,4 +1,5 @@
 import {createFrame, clearFrame, createFx, composite} from './pixelfx/core/index.js';
+import {createArt} from './art.js';
 import * as collectBurst from './pixelfx/fx/pickups/collect-burst.js';
 import * as hitSpark from './pixelfx/fx/impacts/hit-spark.js';
 import * as swordSlash from './pixelfx/fx/melee/sword-slash.js';
@@ -14,6 +15,7 @@ ctx.imageSmoothingEnabled=false;
 const fxCanvas=document.createElement('canvas');fxCanvas.width=W;fxCanvas.height=H;
 const fxCtx=fxCanvas.getContext('2d',{alpha:true,willReadFrequently:false});
 const fxFrame=createFrame(W,H), fxPixels=fxCtx.createImageData(W,H);
+const art=createArt(ctx,W,H);
 const overlay=document.querySelector('#overlay'), hud=document.querySelector('#hud');
 const heartsEl=document.querySelector('#hearts'), shardEl=document.querySelector('#shard-count'),stageEl=document.querySelector('#stage-name');
 const menuTitle=document.querySelector('#menu-title'),menuDesc=document.querySelector('#menu-description'),menuTag=document.querySelector('#menu-tag');
@@ -81,7 +83,7 @@ function notify(message,duration=1.8){toastEl.textContent=message;toastEl.classL
 function hideToast(){toastTime=0;toastEl.classList.add('hidden')}
 function setupLevel(index){
  stage=index;const src=rawLevels[stage],theme=colorSets[stage];
- level={...src,theme,
+ level={...src,theme,stage:index,
   solids:[...src.ground.map(([x,w])=>({x,y:FLOOR,w,h:100,ground:true})),
     ...src.platforms.map(([x,y,w])=>({x,y,w,h:11,ground:false}))],
   gems:src.gems.map(([x,y])=>({x,y,taken:false})),
@@ -432,10 +434,12 @@ function render(){
  if(!level)return;
  ctx.save();
  if(shake>0&&mode==='playing')ctx.translate(Math.round((hash(clock*37)-.5)*shake*2),Math.round((hash(clock*46)-.5)*shake*1.5));
- drawBackground();drawGoal();drawSolids();
- for(const item of level.gems)drawGem(item);
- for(const e of level.foes)drawEnemy(e);
- drawPlayer();drawParticles();drawVfx();
+ art.background(level.theme,stage,camera,clock);
+ art.goal(level,camera,clock,shards,player);
+ art.terrain(level,camera,clock);
+ for(const item of level.gems)art.gem(item,camera,clock,stage);
+ for(const e of level.foes)art.enemy(e,camera,clock,stage);
+ art.hero(player,camera,clock,stage);drawParticles();drawVfx();art.foreground(stage,clock);
  if(flash>0){ctx.globalAlpha=flash*.20;rect(0,0,W,H,'#d0ffff');ctx.globalAlpha=1}
  // progress bar painted into the world so no huge HUD
  rect(0,H-3,W,3,'#0a1121');rect(0,H-3,Math.round(W*clamp(player.x/level.end,0,1)),3,level.theme.accent);
