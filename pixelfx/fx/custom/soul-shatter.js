@@ -30,6 +30,7 @@ export function draw(p,t,o){
   y=-8+Math.sin(a)*speed*age+95*age*age,
   size=(i%4===0?4.2:1.8)+rand(i,o.seed,35)*1.7,fade=1-smooth(.53,1,phase);
   const dx=Math.cos(a+age*5),dy=Math.sin(a+age*5);
+  if(y>40)continue; // don't spill below the defeated enemy or outside the effect frame
   if(i%3===0){
     p.poly([[x+dx*size*1.5,y+dy*size*1.5],[x-dy*size*.65,y+dx*size*.65],
       [x-dx*size,y-dy*size],[x+dy*size*.55,y-dx*size*.55]],i%2?C[4]:C[3],fade);

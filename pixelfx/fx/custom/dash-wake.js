@@ -55,7 +55,7 @@ export function draw(p,t,o){
   for(let i=0;i<14;i++){
     const delay=rand(i,o.seed,51)*.12,life=.24+rand(i,o.seed,72)*.32,u=(t-delay)/life;
     if(u<0||u>=1)continue;
-    const seed=rand(i,o.seed,81),ang=-1.4+seed*2.8,
+    const seed=rand(i,o.seed,81),ang=-1.5+seed*1.75,
     speed=24+rand(i,o.seed,85)*78, x=4+Math.cos(ang)*speed*u-31*u,
     y=-14+Math.sin(ang)*speed*u+32*u*u, size=(i%4===0?2.8:1.35)*(1-u*.42);
     if(i%3===0){
