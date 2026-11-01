@@ -1,12 +1,14 @@
 {
   "name": "shard-runner",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Three-realm action platformer using local PixelFX modules",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "check": "node --check game.js && node --test tests/*.test.js"
+    "fx:check": "node tools/check.mjs custom",
+    "fx:preview": "node tools/render.mjs custom --max 12 --zoom 3",
+    "check": "node --check game.js && node --check art.js && node --test tests/*.test.js && node tools/check.mjs custom"
   },
   "license": "MIT"
 }
