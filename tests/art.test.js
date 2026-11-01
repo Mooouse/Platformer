@@ -44,5 +44,4 @@ test('Scene draws each realm and entities without runtime exceptions',()=>{
     assert.ok(c.writes>100,'scene produced few pixels');
   }
 });
-if(originalDocument===undefined)delete globalThis.document;
-else globalThis.document=originalDocument;
+// Test process owns this DOM stub until the suite finishes.
