@@ -39,7 +39,7 @@ export function draw(p,t,o){
      p.line(sx,sy,sx+Math.cos(a)*(7+rand(i,o.seed,12)*7),sy+Math.sin(a)*2,C[1],f*.73);
    }
  }
- // Airborne chips: accelerate under gravity, then dim. No Math.random.
+ // Airborne chips: accelerate under gravity, then dim, using seeded coordinates.
  for(let i=0;i<22;i++){
    const delay=rand(i,o.seed,18)*.085,age=t-delay;
    const life=.30+rand(i,o.seed,33)*.42;

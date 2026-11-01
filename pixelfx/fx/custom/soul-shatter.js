@@ -5,7 +5,7 @@ export const meta={
  name:"Soul shatter",
  desc:"A struck guardian splits into four bright crystal wedges, then flying ink shards, pale embers and drifting motes disperse.",
  tags:["custom","enemy","death","impact","shatter","magic"],
- size:[126,126],origin:[63,70],duration:1.06,loop:false,fps:30,bg:"dark",
+ size:[126,166],origin:[63,70],duration:1.06,loop:false,fps:30,bg:"dark",
  options:{
   palette:["#211527","#4a2842","#824663","#c67785","#f6b5a9","#ffe1c4","#ffffff"],seed:89
  }
