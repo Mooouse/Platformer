@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#090e20">
+<title>SHARD RUNNER — PixelFX Laboratory</title>
+<style>
+*{box-sizing:border-box}body{background:#070d1d;color:#e5efff;margin:0;padding:28px 22px 60px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+header{max-width:1120px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+a{color:#a7f6e9;text-decoration:none}a:hover{text-decoration:underline}
+.eyebrow{letter-spacing:4px;color:#87b8bd;font-size:11px;margin-bottom:13px}
+h1{font-weight:900;font-size:clamp(25px,4vw,49px);margin:0 0 12px;letter-spacing:-2px}
+h1 span{color:#93f2e2}
+p{font-size:13px;line-height:1.8;color:#94aabc;max-width:750px}
+.top{max-width:1120px;margin:28px auto 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.filters{display:flex;gap:7px;flex-wrap:wrap}button{background:#192b40;color:#b1cfdd;border:1px solid #436078;border-radius:4px;font:700 11px ui-monospace,monospace;letter-spacing:1px;padding:11px 13px;cursor:pointer}
+button:hover,button.active{color:#071c29;background:#97f0dc;border-color:#c3fff1}
+#grid{max-width:1120px;margin:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+.card{border:1px solid #375064;background:#0d182b;padding:14px;min-width:0;box-shadow:0 7px 25px #0006}
+.preview{height:215px;position:relative;background:linear-gradient(180deg,#111c35 0%,#1a3045 70%,#18323b 72%,#0c152a 73%,#0a1423 100%);display:flex;align-items:center;justify-content:center;overflow:hidden;isolation:isolate}
+.preview::before{content:"";position:absolute;inset:0;opacity:.18;background-image:radial-gradient(#bbf9d6 1px,transparent 1px);background-size:19px 19px;pointer-events:none}
+.preview::after{content:"";position:absolute;left:0;right:0;top:68%;border-top:2px solid #78b2b1;box-shadow:0 0 25px #78fff04c;opacity:.5;pointer-events:none}
+canvas{image-rendering:pixelated;display:block;width:282px;height:216px;position:relative;z-index:1;object-fit:contain}
+.info{padding:14px 2px 3px}h2{font-size:17px;color:#f0f7ff;margin:0 0 7px}
+.info p{font-size:12px;color:#91a8ba;min-height:46px;margin:5px 0}
+.tags{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.tags small{color:#7893a9;font-size:10px}.tags button{padding:8px 10px;font-size:10px}
+.footer{max-width:1120px;margin:24px auto 0;color:#8da6b8;font-size:11px}
+@media(max-width:680px){#grid{grid-template-columns:1fr}body{padding:22px 12px}.preview{height:170px}canvas{width:220px;height:170px}}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="eyebrow">SHARD RUNNER / VFX STUDY</div>
+  <h1>THE <span>FX LAB</span></h1>
+  <p>Four original effects built with PixelFX's native painter. Every spark is code, no GIFs or videos. Pick a realm, replay a take, and inspect its complete animation.</p></div>
+  <a href="./">← BACK TO GAME</a>
+</header>
+<section class="top">
+  <div class="filters" role="group" aria-label="Effect palette">
+    <button class="active" data-theme="0">01 / MOSSWORKS</button>
+    <button data-theme="1">02 / ASHEN KEEP</button>
+    <button data-theme="2">03 / STARFALL</button>
+  </div>
+  <button id="replay-all">↻ REPLAY ALL</button>
+</section>
+<main id="grid">
+</main>
+<div class="footer">Original effects: <a href="https://github.com/Mooouse/Platformer/tree/main/pixelfx/fx/custom">SOURCE CODE</a> · <a href="https://github.com/Mooouse/Platformer/blob/main/skills/pixelfx/SKILL.md">PIXELFX AUTHORING METHOD</a>.  All playback runs locally in your browser.</div>
+<script type="module" src="./effects-lab.js"></script>
+</body>
+</html>
