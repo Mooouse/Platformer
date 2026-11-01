@@ -7,6 +7,10 @@ import * as arcanePortal from './pixelfx/fx/arcane/portal.js';
 import * as smallExplosion from './pixelfx/fx/explosions/small-explosion.js';
 import * as teleportPad from './pixelfx/fx/scifi/teleporter-pad.js';
 import * as torch from './pixelfx/fx/fire/torch.js';
+import * as dashWake from './pixelfx/fx/custom/dash-wake.js';
+import * as jumpBloom from './pixelfx/fx/custom/jump-bloom.js';
+import * as landingCrown from './pixelfx/fx/custom/landing-crown.js';
+import * as soulShatter from './pixelfx/fx/custom/soul-shatter.js';
 
 const W=480,H=270, FLOOR=232, TAU=Math.PI*2;
 const canvas=document.querySelector('#game');
@@ -36,7 +40,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
 const hash=(n)=>{const v=Math.sin(n*127.1+78.233)*43758.5453;return v-Math.floor(v)};
 const overlap=(ax,ay,aw,ah,bx,by,bw,bh)=>ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;
 let mode='menu',stage=0,level=null,player=null,camera=0,clock=0,last=0,raf=0,shake=0,flash=0;
-let fxList=[],shards=0,toastTime=0,gateHintTime=0,particles=[],shootTime=0;
+let fxList=[],shards=0,toastTime=0,gateHintTime=0,particles=[],shootTime=0,hitStop=0;
 let highestUnlock=0,sound=true,ac=null,musicT=0,musicStep=0;
 try{highestUnlock=clamp(Number(localStorage.getItem('shard-runner-unlock')||0),0,2);sound=localStorage.getItem('shard-runner-sound')!=='off'}catch{}
 const keys={left:false,right:false},touch={left:false,right:false};
@@ -90,7 +94,7 @@ function setupLevel(index){
   foes:src.foes.map(([x,y,min,max,speed,flying])=>({x,y,min,max,speed,flying,baseY:y,dir:hash(x)>0.5?1:-1,alive:true,hit:0})),
   activeCheckpoints:new Set()};
  player={x:48,y:FLOOR-22,w:12,h:22,vx:0,vy:0,face:1,grounded:false,coyote:0,jumps:0,dash:0,dashCD:0,invuln:0,hp:3,checkpoint:48,runT:0};
- camera=0;shake=0;flash=0;shards=0;fxList=[];particles=[];hideToast();gateHintTime=0;shootTime=0;
+ camera=0;shake=0;flash=0;shards=0;fxList=[];particles=[];hideToast();gateHintTime=0;shootTime=0;hitStop=0;
  spawn(arcanePortal,level.end,FLOOR-4,{width:15,height:27,palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,light:.85},true);
  spawn(teleportPad,level.end,FLOOR,{palette:stage===1?palettes.amber:palettes.aqua,light:.58},true);
  for(const [i,x] of src.torches.entries())spawn(torch,x,210,{...(stage===1?{}:{palette:palettes.aqua}),light:.46,seed:x+i},true);
@@ -154,10 +158,10 @@ function collect(gem){
  if(shards===3){notify('GATE UNLOCKED — FIND THE EXIT!',2.3);sfx('gate')}
 }
 function kill(enemy){
- enemy.alive=false;shake=2.4;
- spawn(hitSpark,enemy.x,enemy.y+7,{palette:palettes.amber,height:17,flip:player.face<0,light:.8});
- spawn(smallExplosion,enemy.x,enemy.y+14,{size:.30,light:.3,palette:stage===1?palettes.amber:palettes.aqua});
- dust(enemy.x,enemy.y+7,level.theme.enemy,12,1.2);sfx('hit');
+ enemy.alive=false;shake=2.1;hitStop=.055;
+ spawn(hitSpark,enemy.x,enemy.y+7,{palette:palettes.amber,height:17,flip:player.face<0,light:.67});
+ spawn(soulShatter,enemy.x,enemy.y+7,{palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,light:.85});
+ dust(enemy.x,enemy.y+7,level.theme.enemy,5,.7);sfx('hit');
 }
 function completeLevel(){
  sfx('gate');flash=.55;shake=3;
@@ -168,6 +172,7 @@ function completeLevel(){
  }
 }
 function step(dt){
+ if(mode==='playing'&&hitStop>0){hitStop=Math.max(0,hitStop-dt);return;}
  clock+=dt;
  if(mode!=='playing')return;
  musicTick(dt);
@@ -184,16 +189,17 @@ function step(dt){
   if(p.grounded||p.coyote>0||p.jumps<2){
    if(!p.grounded&&p.coyote<=0&&p.jumps===0)p.jumps=1;
    p.vy=-272;p.grounded=false;p.coyote=0;p.jumps++;
-   dust(p.x+6,p.y+21,level.theme.accent,7,.48);sfx('jump');
-   if(p.jumps===2){spawn(collectBurst,p.x+6,p.y+18,{palette:palettes.aqua,light:.30})}
+   spawn(jumpBloom,p.x+6,p.y+p.h,{palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,power:p.jumps===2?1.25:1,light:p.jumps===2?.9:.7});
+   dust(p.x+6,p.y+21,level.theme.accent,p.jumps===2?5:3,.35);sfx('jump');
   }
   queuedJump=false;
  }
  if(queuedDash){
   if(p.dashCD<=0){
    p.dash=.18;p.dashCD=.73;p.vy=0;p.vx=p.face*335;p.invuln=Math.max(p.invuln,.23);shake=1.1;
-   spawn(swordSlash,p.x+6+p.face*12,p.y+12,{flip:p.face<0,radius:26,light:.60,palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua});
-   dust(p.x+6,p.y+12,level.theme.accent,9,.8);sfx('dash');
+   spawn(swordSlash,p.x+6+p.face*12,p.y+12,{flip:p.face<0,radius:26,light:.52,palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua});
+   spawn(dashWake,p.x+6+p.face*9,p.y+11,{flip:p.face<0,palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,light:.85});
+   dust(p.x+6,p.y+12,level.theme.accent,4,.5);sfx('dash');
   }
   queuedDash=false;
  }
@@ -213,7 +219,10 @@ function step(dt){
   for(const s of level.solids){
    if(p.x+p.w<s.x+2||p.x>s.x+s.w-2)continue;
    if(prevBottom<=s.y+7&&p.y+p.h>=s.y&&p.y+p.h<s.y+28){
-    if(p.vy>165) dust(p.x+6,s.y,level.theme.blocks[2],Math.min(9,Math.floor(p.vy/50)),.42);
+    if(p.vy>150){
+     spawn(landingCrown,p.x+6,s.y,{palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,force:clamp(p.vy/280,.75,1.3),light:.58});
+     if(p.vy>300)shake=Math.max(shake,1.1);
+    }
     p.y=s.y-p.h;p.vy=0;p.grounded=true;p.jumps=0;break;
    }
   }
