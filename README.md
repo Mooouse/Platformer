@@ -1,27 +1,56 @@
-# Shard Runner — a PixelFX platformer
+# SHARD RUNNER — a PixelFX platformer
 
-A handcrafted, three-stage HTML5 action platformer featuring real effects from [patch-gg/pixelfx](https://github.com/patch-gg/pixelfx).
+Three handcrafted side-scrolling realms. Fast dash combat, double jumps, collectible shards, checkpoints, enemies and exit portals. Built with HTML5 Canvas and the [PixelFX](https://github.com/patch-gg/pixelfx) code-first pixel VFX engine.
 
-**Play:** https://mooouse.github.io/Platformer/
+**[Play the game](https://mooouse.github.io/Platformer/)** · **[Open the FX Lab](https://mooouse.github.io/Platformer/effects.html)**
+
+## What's new in v0.2
+
+Four **original, hand-coded PixelFX effects** written expressly for this game and rendered at the same native pixel scale:
+
+| Event | Effect module | Artistic direction |
+| --- | --- | --- |
+| Jump / double-jump | `pixelfx/fx/custom/jump-bloom.js` | white takeoff, rolling ground rings, rising motes |
+| Dash attack | `pixelfx/fx/custom/dash-wake.js` | pressure crescents, sharp fast streaks, glints |
+| Hard landing | `pixelfx/fx/custom/landing-crown.js` | ground ripple, tumbling stone, soft dust |
+| Enemy defeat | `pixelfx/fx/custom/soul-shatter.js` | brief white contact frame, flying crystal facets |
+
+These are integrated into `game.js`, alongside selected upstream PixelFX effects. The FX Lab renders their **real code**, with replay and palette switching between the three worlds. Contact sheets are built on deployment and served at `records/custom/<effect>/contact.png`.
 
 ## Controls
-- **A / D** or **← / →** — move
-- **W / ↑ / Space** — jump, then double-jump
-- **Shift / X / J** — dash attack (damages enemies)
-- **Esc / P** — pause
-- **R** — restart stage
-- **M** — toggle sound
 
-Mobile has on-screen touch controls.
+| Key | Action |
+| --- | --- |
+| A / D or ← / → | Move |
+| W / ↑ / Space | Jump, then double-jump |
+| Shift / X / J | Dash strike |
+| Esc / P | Pause |
+| R | Restart stage |
+| M | Toggle sound |
 
-Collect at least **3 shards** to activate the exit portal. Health replenishes on every stage. Checkpoints save your respawn position.
+Touch controls appear on mobile. Collect at least 3 shards to activate each gate.
 
-## Technology
-Vanilla JavaScript + HTML5 Canvas; no build step or external runtime. PixelFX's MIT-licensed source is vendored in `pixelfx/` (selected effects, helpers and core) to run offline and avoid CDN failure.
+## The PixelFX authoring workflow
 
-PixelFX copyright (c) Patch contributors and upstream authors. MIT license and notices: `pixelfx/LICENSE`, `pixelfx/NOTICE.md`.
+This repository includes the upstream **[AI skill](skills/pixelfx/SKILL.md)** and **[technical art guide](docs/AUTHORING.md)**, with local integration notes in **[AGENTS.md](AGENTS.md)** and **[FX-PIPELINE.md](docs/FX-PIPELINE.md)**.
 
-## GitHub Pages
-Enable **Settings → Pages → Deploy from branch → main / (root)**. Then open the play URL above. No Actions or stored artifacts are needed.
+A new effect is not done after one code pass: choose references, create distinct drafts, render a contact sheet and animation, compare the motion, refine at least three times, and run the upstream quality checker. Keep only the selected, reviewed variant.
 
-This is a prototype meant to be expanded with new maps, bosses, and effects.
+```sh
+node tools/list.mjs custom
+node tools/new.mjs custom/my-effect
+node tools/render.mjs custom/my-effect --max 16 --zoom 3
+node tools/check.mjs custom/my-effect
+npm run check
+```
+
+`npm run fx:preview` renders all custom contact sheets locally; `npm run fx:check` enforces PixelFX's own effect quality checks. The `records/` directory is generated and ignored by Git. GitHub Pages regenerates the previews automatically during deployment, without storing build archives in Git.
+
+## Technical notes
+
+- Vanilla ECMAScript modules + HTML5 Canvas, native 480 × 270 game resolution.
+- All selected upstream PixelFX code is vendored under `pixelfx/` and requires no CDN or npm install to play.
+- Automated tests cover character art, all realms, the imported PixelFX effects and the original-effect quality checker.
+- GitHub Pages deploys from Actions on every push to `main`.
+- Upstream PixelFX is MIT-licensed; see `pixelfx/LICENSE` and `pixelfx/NOTICE.md`. The Patch Pixel gallery font is **not** bundled.
+
