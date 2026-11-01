@@ -15,5 +15,10 @@ jobs:
           node-version: '22'
       - name: Check game script syntax
         run: node --check game.js
-      - name: Run PixelFX rendering test
+      - name: Test gameplay artwork and PixelFX modules
         run: node --test tests/*.test.js
+      - name: Enforce upstream PixelFX quality rules
+        run: node tools/check.mjs custom
+      - name: Render original effect contact sheets
+        run: node tools/render.mjs custom --max 10 --zoom 2
+
