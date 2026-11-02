@@ -532,6 +532,7 @@ const movementFingers=new Map();
 function syncMovementFingers(){
  touch.left=[...movementFingers.values()].includes('left');
  touch.right=[...movementFingers.values()].includes('right');
+ for(const d of ['left','right'])document.querySelector('[data-action="'+d+'"]')?.classList.toggle('pressed',touch[d]);
 }
 for(const btn of document.querySelectorAll('[data-action]')){
  const a=btn.dataset.action;
@@ -551,7 +552,7 @@ for(const btn of document.querySelectorAll('[data-action]')){
   if(movementFingers.get(e.pointerId)!==direction){
    movementFingers.set(e.pointerId,direction);
    syncMovementFingers();
-   for(const d of ['left','right'])document.querySelector('[data-action="'+d+'"]')?.classList.toggle('pressed',[...movementFingers.values()].includes(d));
+
   }
  });
  for(const evt of ['pointerup','pointercancel','lostpointercapture'])btn.addEventListener(evt,e=>{
