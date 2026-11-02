@@ -4,6 +4,8 @@ import * as jump from './pixelfx/fx/custom/jump-bloom.js';
 import * as land from './pixelfx/fx/custom/landing-crown.js';
 import * as shatter from './pixelfx/fx/custom/soul-shatter.js';
 import * as cleave from './pixelfx/fx/custom/cleave-contact.js';
+import * as prism from './pixelfx/fx/custom/prism-launch.js';
+import * as meteor from './pixelfx/fx/custom/meteor-strike.js';
 
 const palettes=[
  ["#102941","#1d4d6a","#2b7b9b","#42b6c0","#75e8dd","#bbfff0","#ffffff"],
@@ -15,7 +17,9 @@ const scenes=[
  {id:"jump-bloom",title:"02 / JUMP BLOOM",desc:"A luminous takeoff: floor rings roll in depth while gravity tugs the motes back.",mod:jump},
  {id:"landing-crown",title:"03 / LANDING CROWN",desc:"A heavy contact frame breaks into shallow shock rings, dust volumes and tumbling stones.",mod:land},
  {id:"soul-shatter",title:"04 / SOUL SHATTER",desc:"A guardian breaks apart in asymmetric glass wedges; high-energy white gives way to a long soft decay.",mod:shatter},
- {id:"cleave-contact",title:"05 / CLEAVE CONTACT",desc:"The sword connects: a one-frame white seam, glass pressure crescents and weighted bright fragments with soft vapour.",mod:cleave}
+ {id:"cleave-contact",title:"05 / CLEAVE CONTACT",desc:"The sword connects: a one-frame white seam, glass pressure crescents and weighted bright fragments with soft vapour.",mod:cleave},
+ {id:"prism-launch",title:"06 / PRISM LAUNCH",desc:"A bounce crystal explodes into layered floor rings, prismatic motes and upward sparks.",mod:prism},
+ {id:"meteor-strike",title:"07 / METEOR STRIKE",desc:"A meteoric collision sends glass shards and shock waves rolling across the floor.",mod:meteor}
 ];
 const cards=[],container=document.querySelector("#grid");
 let theme=0,last=0,acc=0;
