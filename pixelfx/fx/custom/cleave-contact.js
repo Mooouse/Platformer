@@ -8,7 +8,7 @@ export const meta = {
   name: "Cleave contact",
   desc: "A one-frame sword glint fractures into a diagonal blade scar, two offset pressure arcs and slow-falling crystal chips.",
   tags: ["custom", "combat", "slash", "impact", "directional", "one-shot"],
-  size: [160, 144], origin: [80, 80],
+  size: [160, 160], origin: [80, 80],
   duration: .76, loop: false, fps: 30, bg: "ground",
   options: {
     palette: ["#111e38", "#263960", "#335e88", "#4e93b9", "#81cfe0", "#c4f8fa", "#ffffff"],
