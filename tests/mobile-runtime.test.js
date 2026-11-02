@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 // Browser-independent simulation of the actual game entrypoint: load real PixelFX
 // modules and render several frames, then rotate a simulated phone in place.
 test('Portrait play, jump, dash and landscape rotation run without runtime errors',async()=>{
- const events=new Map(), all=new Map(), pending=[];
+ const pending=[];
  const nop=()=>{};
  const gradients={addColorStop:nop};
  const context={
@@ -16,11 +16,11 @@ test('Portrait play, jump, dash and landscape rotation run without runtime error
   createImageData:(w,h)=>({data:new Uint8ClampedArray(w*h*4),width:w,height:h})
  };
  const makeEl=(tag='div')=>{
-  const classSet=new Set();
-  return {tagName:tag,width:0,height:0,dataset:{},style:{},textContent:'',innerHTML:'',
+  const classSet=new Set(),handlers=new Map();
+  return {tagName:tag,width:0,height:0,dataset:{},style:{},handlers,textContent:'',innerHTML:'',
    classList:{add:n=>classSet.add(n),remove:n=>classSet.delete(n),
     toggle:(n,yes)=>yes===undefined?classSet.has(n)?classSet.delete(n):classSet.add(n):yes?classSet.add(n):classSet.delete(n)},
-   addEventListener:(type,fn)=>{events.set(this?.name+type,fn)},
+   addEventListener:(type,fn)=>{handlers.set(type,fn)},
    setAttribute:nop,append:nop,closest:()=>null,setPointerCapture:nop,
    getContext:()=>context,getBoundingClientRect:()=>({width:390,height:844})
   };
@@ -62,11 +62,20 @@ test('Portrait play, jump, dash and landscape rotation run without runtime error
   await import('../game.js');
   assert.equal(canvas.width,220);assert.ok(canvas.height>400);
   const start=selectors.get('#primary-btn');
-  // Button handlers in the actual entrypoint are wired to these element instances.
-  assert.ok(start);
-  // Run game-loop frames while paused in the start menu.
+  assert.ok(start?.handlers?.get('click'),'start menu click is wired');
+  start.handlers.get('click')();
   let t=0;
-  for(let i=0;i<3;i++){t+=16.7;pending.shift()(t)}
+  for(let i=0;i<6;i++){t+=16.7;pending.shift()(t)}
+  // Move, jump, and attack with actual gameplay ticking before rotating.
+  const keydown=listeners.get('document:keydown');
+  const keyup=listeners.get('document:keyup');
+  keydown({key:'d',repeat:false,preventDefault:nop});
+  for(let i=0;i<6;i++){t+=16.7;pending.shift()(t)}
+  keyup({key:'d'});
+  keydown({key:' ',repeat:false,preventDefault:nop});
+  for(let i=0;i<5;i++){t+=16.7;pending.shift()(t)}
+  keydown({key:'Shift',repeat:false,preventDefault:nop});
+  for(let i=0;i<10;i++){t+=16.7;pending.shift()(t)}
   // Rotate from portrait to landscape; viewport and frame buffers are recreated.
   rect={width:844,height:390};
   listeners.get('window:resize')();
