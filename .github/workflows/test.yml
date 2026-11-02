@@ -18,7 +18,12 @@ jobs:
       - name: Test gameplay artwork and PixelFX modules
         run: node --test tests/*.test.js
       - name: Enforce upstream PixelFX quality rules
-        run: node tools/check.mjs custom
+        run: |
+          node tools/check.mjs custom | tee /tmp/pixelfx-check.log
+          if grep -q '^warn ' /tmp/pixelfx-check.log; then
+            echo 'PixelFX warnings are not allowed.'
+            exit 1
+          fi
       - name: Render original effect contact sheets
         run: node tools/render.mjs custom --max 10 --zoom 2
 
