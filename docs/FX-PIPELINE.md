@@ -15,7 +15,7 @@ The stock PixelFX skill refers to `src/core/`, `src/fx/`, and `src/fx/<category>
 5. **Refine / repeat:** do at least 3 passes on a featured effect. Pay attention to: a sharp 1–2 frame contact, believable slow decay, glow not washing out hard pixels, and particles moving in coherent trajectories.
 6. **Validate:** `node tools/check.mjs custom/<id>` and fix warnings, including spills outside the canvas and poor seams. `npm run check` runs automated integration tests.
 7. **Integrate:** place via `createFx(mod, {x,y,flip,palette,seed})` at the character's feet, the contact point, or the defeated enemy; update and draw once per simulation tick. Reuse level palette ramps.
-8. **Publish and inspect:** GitHub Pages deploy workflow generates PNG frame contact sheets and serves them at `/records/custom/<id>/contact.png`. The interactive lab at `/effects.html` previews all 4 current originals with palette switching.
+8. **Publish and inspect:** GitHub Pages deploy workflow generates PNG frame contact sheets and serves them at `/records/custom/<id>/contact.png`. The interactive lab at `/effects.html` previews all 5 current originals with palette switching.
 
 ## Commands
 
@@ -34,6 +34,7 @@ npm run check
 - `custom/jump-bloom`: brief foot flash → elliptical floor rings → upward shards and brief motes → clean decay.
 - `custom/landing-crown`: compression flash → back/front ground waves → rock fragments and translucent dust → settling light.
 - `custom/soul-shatter`: 2-frame fracture → angular debris on seeded ballistic paths → tiny glints → fading energy.
+- `custom/cleave-contact`: 75ms sword wind-up using the actual rig pose → 2-frame diagonal white contact → pressure arcs → ballistic crystal facets → translucent vapour; the act's hit key drives short contact freeze.
 
 These aren't merely effects in a gallery: `game.js` triggers them on real input/physics/combat events. The standard `pixelfx/fx/` originals remain untouched. New original effects go in `pixelfx/fx/custom/`.
 
