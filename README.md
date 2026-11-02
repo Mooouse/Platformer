@@ -4,9 +4,9 @@ Three handcrafted side-scrolling realms. Fast dash combat, double jumps, collect
 
 **[Play the game](https://mooouse.github.io/Platformer/)** · **[Open the FX Lab](https://mooouse.github.io/Platformer/effects.html)**
 
-## What's new in v0.2
+## What's new in v0.3
 
-Four **original, hand-coded PixelFX effects** written expressly for this game and rendered at the same native pixel scale:
+Five **original, hand-coded PixelFX effects** written expressly for this game and rendered at the same native pixel scale:
 
 | Event | Effect module | Artistic direction |
 | --- | --- | --- |
@@ -14,6 +14,7 @@ Four **original, hand-coded PixelFX effects** written expressly for this game an
 | Dash attack | `pixelfx/fx/custom/dash-wake.js` | pressure crescents, sharp fast streaks, glints |
 | Hard landing | `pixelfx/fx/custom/landing-crown.js` | ground ripple, tumbling stone, soft dust |
 | Enemy defeat | `pixelfx/fx/custom/soul-shatter.js` | brief white contact frame, flying crystal facets |
+| Dash hit / blade contact | `pixelfx/fx/custom/cleave-contact.js` | wind-up pose, brilliant 2-frame contact, broken lens shockwaves and weighted facets |
 
 These are integrated into `game.js`, alongside selected upstream PixelFX effects. The FX Lab renders their **real code**, with replay and palette switching between the three worlds. Contact sheets are built on deployment and served at `records/custom/<effect>/contact.png`.
 
@@ -45,6 +46,8 @@ npm run check
 ```
 
 `npm run fx:preview` renders all custom contact sheets locally; `npm run fx:check` enforces PixelFX's own effect quality checks. The `records/` directory is generated and ignored by Git. GitHub Pages regenerates the previews automatically during deployment, without storing build archives in Git.
+
+**Combat timing:** pressing dash now triggers a short `cleave-contact.act` anticipation pose before movement. On hitting an enemy the hit frame spawns the authored collision FX; the same act supplies the short hit-stop, while the enemy breaks into shatter FX. This keeps the player movement, sword strike, and contact at coherent times.
 
 ## Technical notes
 
