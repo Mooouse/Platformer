@@ -6,7 +6,7 @@ Three increasingly difficult side-scrolling worlds. Fast dash combat, double jum
 
 ## What's new in v0.4 — Try Again
 
-Five **original, hand-coded PixelFX effects** written expressly for this game and rendered at the same native pixel scale:
+Seven **original, hand-coded PixelFX effects** written expressly for this game and rendered at the same native pixel scale:
 
 | Event | Effect module | Artistic direction |
 | --- | --- | --- |
@@ -15,6 +15,8 @@ Five **original, hand-coded PixelFX effects** written expressly for this game an
 | Hard landing | `pixelfx/fx/custom/landing-crown.js` | ground ripple, tumbling stone, soft dust |
 | Enemy defeat | `pixelfx/fx/custom/soul-shatter.js` | brief white contact frame, flying crystal facets |
 | Dash hit / blade contact | `pixelfx/fx/custom/cleave-contact.js` | wind-up pose, brilliant 2-frame contact, broken lens shockwaves and weighted facets |
+| Spring launch | `pixelfx/fx/custom/prism-launch.js` | ground rings, upward crystalline filaments and star glints |
+| Meteor impact | `pixelfx/fx/custom/meteor-strike.js` | white contact core, shock rings, falling crystal debris and fading vapour |
 
 These are integrated into `game.js`, alongside selected upstream PixelFX effects. The FX Lab renders their **real code**, with replay and palette switching between the three worlds. Contact sheets are built on deployment and served at `records/custom/<effect>/contact.png`.
 
