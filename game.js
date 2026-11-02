@@ -15,6 +15,8 @@ import * as jumpBloom from './pixelfx/fx/custom/jump-bloom.js';
 import * as landingCrown from './pixelfx/fx/custom/landing-crown.js';
 import * as soulShatter from './pixelfx/fx/custom/soul-shatter.js';
 import * as cleaveContact from './pixelfx/fx/custom/cleave-contact.js';
+import * as prismLaunch from './pixelfx/fx/custom/prism-launch.js';
+import * as meteorStrike from './pixelfx/fx/custom/meteor-strike.js';
 
 let W=480,H=270,worldOffset=0,cameraLead=.32;
 const FLOOR=232, TAU=Math.PI*2;
@@ -230,7 +232,7 @@ function advanceHazards(dt){
    if(m.y>=FLOOR-5){
     m.phase='ready';m.cooldown=2.45+stage*.15;m.y=FLOOR;
     const palette=stage===1?palettes.amber:palettes.lilac;
-    spawn(smallExplosion,m.x,FLOOR-2,{palette,light:.60});
+    spawn(meteorStrike,m.x,FLOOR-2,{palette,light:.74});
     dust(m.x,FLOOR-4,level.theme.accent,13,.9);
     shake=Math.max(shake,1.0);
     if(Math.abs(p.x+6-m.x)<19&&p.y+p.h>FLOOR-30)hurt();
@@ -245,8 +247,8 @@ function checkChallenges(p){
   if(Math.abs(p.x+6-spring.x)<13&&p.y+p.h>=FLOOR-13&&p.y+p.h<=FLOOR+7){
    p.vy=-370;p.grounded=false;p.jumps=1;
    spring.cooldown=.72;p.springCooldown=.32;
-   spawn(jumpBloom,spring.x,FLOOR-2,{palette:pal,light:1.05,power:1.35});
-   spawn(collectBurst,spring.x,FLOOR-7,{palette:pal,light:.75});
+   spawn(prismLaunch,spring.x,FLOOR-2,{palette:pal,light:.96});
+   spawn(collectBurst,spring.x,FLOOR-7,{palette:pal,light:.4});
    dust(spring.x,FLOOR-7,level.theme.accent,9,.62);sfx('jump');
   }
  }
