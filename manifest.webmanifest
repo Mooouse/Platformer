@@ -1,0 +1,12 @@
+{
+  "id": "./",
+  "name": "SHARD RUNNER",
+  "short_name": "SHARD RUNNER",
+  "description": "Immersive pixel action platformer with PixelFX effects.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#080e20",
+  "theme_color": "#080e20"
+}
