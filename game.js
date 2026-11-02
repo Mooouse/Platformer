@@ -183,8 +183,14 @@ function collect(gem){
  if(shards===3){notify('GATE UNLOCKED — FIND THE EXIT!',2.3);sfx('gate')}
 }
 function kill(enemy){
- enemy.alive=false;shake=2.1;hitStop=cleaveContact.act.hits[0].stop;
  const impactPalette=stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua;
+ if(enemy.hp>1){
+  enemy.hp--;enemy.hit=.65;shake=1.4;hitStop=.055;
+  spawn(hitSpark,enemy.x,enemy.y+6,{palette:impactPalette,light:.9,flip:player.face<0});
+  dust(enemy.x,enemy.y+5,level.theme.accent,9,1);
+  sfx('hit');return;
+ }
+ enemy.alive=false;shake=2.1;hitStop=cleaveContact.act.hits[0].stop;
  spawn(cleaveContact,enemy.x,enemy.y+7,{flip:player.face<0,palette:impactPalette,light:.86});
  spawn(soulShatter,enemy.x,enemy.y+7,{palette:impactPalette,light:.52});
  dust(enemy.x,enemy.y+7,level.theme.enemy,5,.7);sfx('hit');
@@ -270,6 +276,8 @@ function step(dt){
  if(mode!=='playing')return;
  for(const enemy of level.foes){
   if(!enemy.alive)continue;
+  enemy.hit=Math.max(0,enemy.hit-dt);
+  if(enemy.hit>0)continue;
   enemy.x+=enemy.speed*enemy.dir*dt;
   if(enemy.x<enemy.min){enemy.x=enemy.min;enemy.dir=1}
   if(enemy.x>enemy.max){enemy.x=enemy.max;enemy.dir=-1}
