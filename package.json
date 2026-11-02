@@ -1,7 +1,7 @@
 {
   "name": "shard-runner",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "Three-realm action platformer using local PixelFX modules",
   "scripts": {
