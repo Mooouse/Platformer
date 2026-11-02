@@ -1,10 +1,10 @@
-# SHARD RUNNER — a PixelFX platformer
+# TRY AGAIN — a PixelFX platformer
 
-Three handcrafted side-scrolling realms. Fast dash combat, double jumps, collectible shards, checkpoints, enemies and exit portals. Built with HTML5 Canvas and the [PixelFX](https://github.com/patch-gg/pixelfx) code-first pixel VFX engine.
+Three increasingly difficult side-scrolling worlds. Fast dash combat, double jumps, collectible shards, checkpoints, elite guards, time-based traps and exit portals. Built with HTML5 Canvas and the [PixelFX](https://github.com/patch-gg/pixelfx) code-first pixel VFX engine.
 
 **[Play the game](https://mooouse.github.io/Platformer/)** · **[Open the FX Lab](https://mooouse.github.io/Platformer/effects.html)**
 
-## What's new in v0.3
+## What's new in v0.4 — Try Again
 
 Five **original, hand-coded PixelFX effects** written expressly for this game and rendered at the same native pixel scale:
 
@@ -29,6 +29,17 @@ On devices supporting the Fullscreen API, use the game HUD expand icon. On iOS w
 ### Mobile regression check
 
 `node --test tests/mobile.test.js` exercises portrait and landscape iPhone proportions, desktop 16:9, tablet sizes, square-pixel ratios, ground placement and touch gesture guards.
+
+## New hard-but-fair challenges
+
+- **Crumbling bridges:** some elevated platforms crack on landing, then disappear for a few seconds. A lit fissure previews the countdown.
+- **Bounce crystals:** step onto bright ground prisms to launch upward; use them to chain advanced jumps.
+- **Dash seals:** vertical energy gates block walking; dash into them to shatter them with PixelFX's `cleave-contact` and `soul-shatter`.
+- **Pulse beams:** short vertical laser emitters alternate between warning, active, cooldown and idle.
+- **Meteor showers:** later realms telegraph an impact point before a falling crystal strikes. There is time to dodge.
+- **Elite guardians:** tougher illuminated enemies have two hit points and briefly stagger after the first sword hit.
+
+Stage one introduces mechanics; stage two combines them; stage three raises pace and pairs them with tight platforming. Hazards are deterministic and telegraphed, rather than randomly hitting the player.
 
 ## Controls
 
