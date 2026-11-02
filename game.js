@@ -520,7 +520,7 @@ document.addEventListener('keydown',e=>{
  if(a==='m'&&!e.repeat){sound=!sound;updateSound();if(sound)startAudio()}
 });
 document.addEventListener('keyup',e=>{const a=normalizeKey(e);if(a==='left'||a==='right')keys[a]=false});
-window.addEventListener('blur',()=>{keys.left=keys.right=false;touch.left=touch.right=false;if(mode==='playing')pause()});
+window.addEventListener('blur',()=>{keys.left=keys.right=false;touch.left=touch.right=false;movementFingers.clear();if(mode==='playing')pause()});
 // Prevent browser zoom, scrolling and iOS long-press selection during gameplay.
 for(const eventName of ['gesturestart','gesturechange','gestureend']){
  viewport.addEventListener(eventName,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
@@ -528,10 +528,37 @@ for(const eventName of ['gesturestart','gesturechange','gestureend']){
 viewport.addEventListener('dblclick',e=>e.preventDefault());
 viewport.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault()},{passive:false});
 viewport.addEventListener('contextmenu',e=>e.preventDefault());
+const movementFingers=new Map();
+function syncMovementFingers(){
+ touch.left=[...movementFingers.values()].includes('left');
+ touch.right=[...movementFingers.values()].includes('right');
+}
 for(const btn of document.querySelectorAll('[data-action]')){
  const a=btn.dataset.action;
- btn.addEventListener('pointerdown',e=>{e.preventDefault();btn.setPointerCapture(e.pointerId);btn.classList.add('pressed');if(a==='jump')queuedJump=true;else if(a==='dash')queuedDash=true;else touch[a]=true});
- for(const evt of ['pointerup','pointercancel','lostpointercapture'])btn.addEventListener(evt,()=>{btn.classList.remove('pressed');if(a==='left'||a==='right')touch[a]=false});
+ btn.addEventListener('pointerdown',e=>{
+  e.preventDefault();
+  btn.setPointerCapture(e.pointerId);
+  btn.classList.add('pressed');
+  if(a==='jump')queuedJump=true;
+  else if(a==='dash')queuedDash=true;
+  else {movementFingers.set(e.pointerId,a);syncMovementFingers()}
+ });
+ // A thumb can slide from LEFT to RIGHT without needing to lift off the screen.
+ btn.addEventListener('pointermove',e=>{
+  if(!movementFingers.has(e.pointerId))return;
+  const hovered=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('[data-action]')?.dataset.action;
+  const direction=hovered==='left'||hovered==='right'?hovered:null;
+  if(movementFingers.get(e.pointerId)!==direction){
+   movementFingers.set(e.pointerId,direction);
+   syncMovementFingers();
+   for(const d of ['left','right'])document.querySelector('[data-action="'+d+'"]')?.classList.toggle('pressed',[...movementFingers.values()].includes(d));
+  }
+ });
+ for(const evt of ['pointerup','pointercancel','lostpointercapture'])btn.addEventListener(evt,e=>{
+  btn.classList.remove('pressed');
+  movementFingers.delete(e.pointerId);
+  syncMovementFingers();
+ });
 }
 primaryBtn.addEventListener('click',()=>onPrimary());
 secondaryBtn.addEventListener('click',()=>onSecondary());
