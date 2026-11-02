@@ -1,7 +1,11 @@
 <!doctype html>
 <html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#090e21">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#070e20">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="./manifest.webmanifest">
 <meta name="description" content="Shard Runner: a fast hand-crafted pixel action platformer with real PixelFX effects.">
 <title>SHARD RUNNER — PixelFX Platformer</title>
 <link rel="stylesheet" href="./style.css">
@@ -15,7 +19,11 @@
         <span class="hud-divider"></span><span class="gem-symbol">◆</span><span id="shard-count">0 / 3</span>
       </div>
       <div class="hud-center"><span id="stage-name">01 / THE MOSSWORKS</span></div>
-      <button id="pause-btn" class="icon-btn" aria-label="Pause">Ⅱ</button>
+      <div class="hud-actions">
+        <button id="sound-btn" class="icon-btn" title="Toggle music and sound" aria-label="Toggle sound">♫</button>
+        <button id="fullscreen-btn" class="icon-btn" title="Fullscreen" aria-label="Toggle fullscreen"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M8 4H4v4M16 4h4v4M20 16v4h-4M4 16v4h4"/></svg></button>
+        <button id="pause-btn" class="icon-btn" aria-label="Pause game">Ⅱ</button>
+      </div>
     </div>
     <div id="toast" class="toast hidden" aria-live="polite"></div>
     <div id="overlay" class="overlay">
@@ -27,16 +35,16 @@
         <div id="menu-stats" class="menu-stats"><span>✦ 3 handcrafted realms</span><span>⚡ dash combat</span><span>◆ collect shards</span></div>
         <button id="primary-btn" class="main-btn">BEGIN THE JOURNEY <span>➜</span></button>
         <button id="secondary-btn" class="secondary-btn hidden">RESTART LEVEL</button>
+        <a class="menu-lab" href="./effects.html" title="PixelFX laboratory">✦ FX LAB</a>
         <p id="menu-hint" class="control-hint"><kbd>A</kbd><kbd>D</kbd> MOVE &nbsp; <kbd>SPACE</kbd> DOUBLE JUMP &nbsp; <kbd>SHIFT</kbd> DASH</p>
       </div>
       <div class="menu-bottom"><span>01 — THE MOSSWORKS</span><span>02 — ASHEN KEEP</span><span>03 — STARFALL</span></div>
     </div>
     <div class="mobile-controls" id="mobile-controls" aria-label="Touch game controls">
-      <div class="move-buttons"><button data-action="left" aria-label="Move left">◀</button><button data-action="right" aria-label="Move right">▶</button></div>
-      <div class="action-buttons"><button data-action="dash" aria-label="Dash attack">⚡</button><button data-action="jump" aria-label="Jump">↑</button></div>
+      <div class="move-buttons"><button type="button" data-action="left" aria-label="Move left"><span aria-hidden="true">◀</span></button><button type="button" data-action="right" aria-label="Move right"><span aria-hidden="true">▶</span></button></div>
+      <div class="action-buttons"><button type="button" data-action="dash" aria-label="Dash attack"><span aria-hidden="true">⚡</span><small>DASH</small></button><button type="button" data-action="jump" aria-label="Jump"><span aria-hidden="true">↑</span><small>JUMP</small></button></div>
     </div>
   </div>
-  <div class="footer"><div class="brand"><span class="brand-mark">✦</span> SHARD RUNNER <span class="mini">v0.2</span></div><div class="footer-right"><span>A/D MOVE · SPACE JUMP · SHIFT DASH · P PAUSE</span><a class="lab-link" href="./effects.html" title="Preview original PixelFX effects">✦ FX LAB</a><button id="sound-btn" title="Toggle sound">♫ SOUND ON</button></div></div>
 </main>
 <script type="module" src="./game.js"></script>
 </body></html>
