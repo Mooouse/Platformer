@@ -46,7 +46,7 @@ export function createArt(ctx, W=480, H=270) {
     }
     ctx.restore();
   }
-  function background(theme, stage,camera,t) {
+  function background(theme, stage,camera,t,groundShift=0) {
     const p=palettes[stage];
     const grd=ctx.createLinearGradient(0,0,0,H);
     const sky=stage===0?['#071326','#182c3e','#284c50']:stage===1?['#1c1021','#49303b','#704747']:['#090f29','#18204e','#343d68'];
@@ -54,13 +54,13 @@ export function createArt(ctx, W=480, H=270) {
     // Dithered celestial haze, sparse stars and drifting fireflies.
     for(let i=0;i<135;i++){
       const depth=i%3, x=(((R(i*32+5)*1153-camera*(.045+depth*.04))%W)+W)%W;
-      const y=8+R(i*19+4)*161,tw=.35+.48*Math.sin(t*(.6+R(i)*1.3)+i);
+      const y=8+R(i*19+4)*(161+groundShift*.56),tw=.35+.48*Math.sin(t*(.6+R(i)*1.3)+i);
       ctx.globalAlpha=clamp(tw,.12,.78);
       px(x,y,i%17===0?2:1,1,i%7===0?p.spark:'#98aab9');
     }
     ctx.globalAlpha=1;
     const moon=stage===1?'#ffa58a':stage===2?'#acc6ff':'#b9f5dc';
-    const mx=354-camera*.026,my=49;
+    const mx=W*.73-camera*.026,my=49+groundShift*.35;
     light(mx,my,90,moon,.14);
     ctx.fillStyle=moon;ctx.beginPath();ctx.arc(mx,my,21,0,TAU);ctx.fill();
     ctx.globalAlpha=.22;
@@ -74,7 +74,7 @@ export function createArt(ctx, W=480, H=270) {
     }
     // Hand-drawn silhouettes rather than geometric mountain triangles.
     for(let layer=0;layer<3;layer++){
-      const speed=[.10,.24,.40][layer],base=[174,205,228][layer],ink=[p.far,p.mid,p.shade][layer];
+      const speed=[.10,.24,.40][layer],base=[174,205,228][layer]+groundShift,ink=[p.far,p.mid,p.shade][layer];
       const unit=30,off=Math.floor(camera*speed/unit);
       const points=[[0,H]];
       for(let i=-2;i<=Math.ceil(W/unit)+2;i++){
@@ -85,8 +85,8 @@ export function createArt(ctx, W=480, H=270) {
     }
     // Parallax ruins: clustered columns, broken windows and bridges.
     const speed=.38,segment=82,off=Math.floor(camera*speed/segment);
-    for(let i=off-2;i<off+10;i++){
-      const x=Math.round(i*segment-camera*speed),bottom=stage===0?214:220;
+    for(let i=off-2;i<off+Math.ceil(W/segment)+4;i++){
+      const x=Math.round(i*segment-camera*speed),bottom=(stage===0?214:220)+groundShift;
       if(R(i*11+stage)<.30)continue;
       architecture(x,bottom,i+19,stage,p,t);
       if(i%4===0){
@@ -96,26 +96,26 @@ export function createArt(ctx, W=480, H=270) {
     }
     if(stage===0){
       const off2=Math.floor(camera*.58/112);
-      for(let i=off2-2;i<off2+9;i++)if(i%3!==1)branches(i*112-camera*.58,220,.75,i,p);
+      for(let i=off2-2;i<off2+9;i++)if(i%3!==1)branches(i*112-camera*.58,220+groundShift,.75,i,p);
     } else if(stage===1){
-      for(let i=-1;i<13;i++){
+      for(let i=Math.floor(camera*.52/64)-2;i<Math.floor(camera*.52/64)+Math.ceil(W/64)+3;i++){
         const x=i*64-camera*.52;
-        path([[x,218],[x+14,188-R(i*9)*18],[x+17,219]],p.far);
-        px(x+15,218,11,17,p.ink);
-        if(i%3===0)light(x+16,180,40,'#e9806c',.11);
+        path([[x,218+groundShift],[x+14,188+groundShift-R(i*9)*18],[x+17,219+groundShift]],p.far);
+        px(x+15,218+groundShift,11,17,p.ink);
+        if(i%3===0)light(x+16,180+groundShift,40,'#e9806c',.11);
       }
     } else {
-      for(let i=-1;i<11;i++){
+      for(let i=Math.floor(camera*.35/80)-2;i<Math.floor(camera*.35/80)+Math.ceil(W/80)+3;i++){
         const x=i*80-camera*.35;
-        px(x,155,2,53,p.ink);px(x-5,151,12,6,p.far);
-        px(x-8,143,18,3,p.far);
-        line(x-4,155,x+2,163,p.edge,1);
+        px(x,155+groundShift,2,53,p.ink);px(x-5,151+groundShift,12,6,p.far);
+        px(x-8,143+groundShift,18,3,p.far);
+        line(x-4,155+groundShift,x+2,163+groundShift,p.edge,1);
       }
     }
     // The player-space silhouette stays legible against soft background fog.
-    const haze=ctx.createLinearGradient(0,145,0,228);
+    const haze=ctx.createLinearGradient(0,145+groundShift,0,228+groundShift);
     haze.addColorStop(0,'transparent');haze.addColorStop(1,p.ink);
-    ctx.globalAlpha=.16;ctx.fillStyle=haze;ctx.fillRect(0,145,W,83);ctx.globalAlpha=1;
+    ctx.globalAlpha=.16;ctx.fillStyle=haze;ctx.fillRect(0,145+groundShift,W,83);ctx.globalAlpha=1;
   }
   function terrain(level,camera,t){
     const p=palettes[level.stage??0];
