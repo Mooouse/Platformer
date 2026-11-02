@@ -1,6 +1,7 @@
 import {createFrame, clearFrame, createFx, composite} from './pixelfx/core/index.js';
 import {createArt} from './art.js';
 import {calculateGameViewport} from './mobile-layout.js';
+import {installGameTouchGuards} from './touch-guards.js';
 import * as collectBurst from './pixelfx/fx/pickups/collect-burst.js';
 import * as hitSpark from './pixelfx/fx/impacts/hit-spark.js';
 import * as swordSlash from './pixelfx/fx/melee/sword-slash.js';
@@ -521,13 +522,8 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('keyup',e=>{const a=normalizeKey(e);if(a==='left'||a==='right')keys[a]=false});
 window.addEventListener('blur',()=>{keys.left=keys.right=false;touch.left=touch.right=false;movementFingers.clear();if(mode==='playing')pause()});
-// Prevent browser zoom, scrolling and iOS long-press selection during gameplay.
-for(const eventName of ['gesturestart','gesturechange','gestureend']){
- viewport.addEventListener(eventName,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
-}
-viewport.addEventListener('dblclick',e=>e.preventDefault());
-viewport.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault()},{passive:false});
-viewport.addEventListener('contextmenu',e=>e.preventDefault());
+// Cancel browser gesture defaults with capture-phase, non-passive listeners.
+installGameTouchGuards(viewport,document);
 const movementFingers=new Map();
 function syncMovementFingers(){
  touch.left=[...movementFingers.values()].includes('left');
