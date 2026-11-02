@@ -11,6 +11,7 @@ import * as dashWake from './pixelfx/fx/custom/dash-wake.js';
 import * as jumpBloom from './pixelfx/fx/custom/jump-bloom.js';
 import * as landingCrown from './pixelfx/fx/custom/landing-crown.js';
 import * as soulShatter from './pixelfx/fx/custom/soul-shatter.js';
+import * as cleaveContact from './pixelfx/fx/custom/cleave-contact.js';
 
 const W=480,H=270, FLOOR=232, TAU=Math.PI*2;
 const canvas=document.querySelector('#game');
@@ -93,7 +94,7 @@ function setupLevel(index){
   gems:src.gems.map(([x,y])=>({x,y,taken:false})),
   foes:src.foes.map(([x,y,min,max,speed,flying])=>({x,y,min,max,speed,flying,baseY:y,dir:hash(x)>0.5?1:-1,alive:true,hit:0})),
   activeCheckpoints:new Set()};
- player={x:48,y:FLOOR-22,w:12,h:22,vx:0,vy:0,face:1,grounded:false,coyote:0,jumps:0,dash:0,dashCD:0,invuln:0,hp:3,checkpoint:48,runT:0};
+ player={x:48,y:FLOOR-22,w:12,h:22,vx:0,vy:0,face:1,grounded:false,coyote:0,jumps:0,dash:0,dashCD:0,invuln:0,hp:3,checkpoint:48,runT:0,windup:0};
  camera=0;shake=0;flash=0;shards=0;fxList=[];particles=[];hideToast();gateHintTime=0;shootTime=0;hitStop=0;
  spawn(arcanePortal,level.end,FLOOR-4,{width:15,height:27,palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,light:.85},true);
  spawn(teleportPad,level.end,FLOOR,{palette:stage===1?palettes.amber:palettes.aqua,light:.58},true);
@@ -158,9 +159,10 @@ function collect(gem){
  if(shards===3){notify('GATE UNLOCKED — FIND THE EXIT!',2.3);sfx('gate')}
 }
 function kill(enemy){
- enemy.alive=false;shake=2.1;hitStop=.055;
- spawn(hitSpark,enemy.x,enemy.y+7,{palette:palettes.amber,height:17,flip:player.face<0,light:.67});
- spawn(soulShatter,enemy.x,enemy.y+7,{palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,light:.85});
+ enemy.alive=false;shake=2.1;hitStop=cleaveContact.act.hits[0].stop;
+ const impactPalette=stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua;
+ spawn(cleaveContact,enemy.x,enemy.y+7,{flip:player.face<0,palette:impactPalette,light:.86});
+ spawn(soulShatter,enemy.x,enemy.y+7,{palette:impactPalette,light:.52});
  dust(enemy.x,enemy.y+7,level.theme.enemy,5,.7);sfx('hit');
 }
 function completeLevel(){
@@ -183,7 +185,7 @@ function step(dt){
  flash=Math.max(0,flash-dt*2);shake=Math.max(0,shake-dt*16);
  const p=player;
  const move=(keys.right||touch.right?1:0)-(keys.left||touch.left?1:0);
- if(move)p.face=move;
+ if(move && p.windup<=0 && p.dash<=0)p.face=move;
  p.coyote=p.grounded ? 0.075 : Math.max(0,p.coyote-dt);
  if(queuedJump){
   if(p.grounded||p.coyote>0||p.jumps<2){
@@ -195,20 +197,32 @@ function step(dt){
   queuedJump=false;
  }
  if(queuedDash){
-  if(p.dashCD<=0){
-   p.dash=.18;p.dashCD=.73;p.vy=0;p.vx=p.face*335;p.invuln=Math.max(p.invuln,.23);shake=1.1;
-   spawn(swordSlash,p.x+6+p.face*12,p.y+12,{flip:p.face<0,radius:26,light:.52,palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua});
-   spawn(dashWake,p.x+6+p.face*9,p.y+11,{flip:p.face<0,palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,light:.85});
-   dust(p.x+6,p.y+12,level.theme.accent,4,.5);sfx('dash');
+  if(p.dashCD<=0&&p.windup<=0){
+   // The original PixelFX act defines a short anticipation before its contact frame.
+   p.windup=-cleaveContact.act.poses[0][0];
+   p.dashCD=.73;
+   p.vx=0;
+   p.invuln=Math.max(p.invuln,p.windup+.19);
   }
   queuedDash=false;
+ }
+ if(p.windup>0){
+  p.windup=Math.max(0,p.windup-dt);
+  p.vx=0;
+  if(p.windup===0){
+   p.dash=.18;p.vy=0;p.vx=p.face*335;shake=1;
+   const dashPalette=stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua;
+   spawn(swordSlash,p.x+6+p.face*12,p.y+12,{flip:p.face<0,radius:26,light:.40,palette:dashPalette});
+   spawn(dashWake,p.x+6+p.face*9,p.y+11,{flip:p.face<0,palette:dashPalette,light:.76});
+   dust(p.x+6,p.y+12,level.theme.accent,4,.5);sfx('dash');
+  }
  }
  const prevBottom=p.y+p.h;
  if(p.dash>0){
   p.dash-=dt;p.vx=p.face*335;p.vy=0;
   if(hash(clock*146)>.5)particles.push({x:p.x+6,y:p.y+12,vx:-p.face*34,vy:(hash(clock*200)-.5)*15,life:.20,max:.20,c:level.theme.accent,s:2});
  }else{
-  const target=move*146,accel=p.grounded?1100:650;
+  const target=p.windup>0?0:move*146,accel=p.grounded?1100:650;
   p.vx+=clamp(target-p.vx,-accel*dt,accel*dt);
   p.vy=Math.min(450,p.vy+755*dt);
  }
