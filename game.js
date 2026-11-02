@@ -1,5 +1,6 @@
 import {createFrame, clearFrame, createFx, composite} from './pixelfx/core/index.js';
 import {createArt} from './art.js';
+import {calculateGameViewport} from './mobile-layout.js';
 import * as collectBurst from './pixelfx/fx/pickups/collect-burst.js';
 import * as hitSpark from './pixelfx/fx/impacts/hit-spark.js';
 import * as swordSlash from './pixelfx/fx/melee/sword-slash.js';
@@ -13,14 +14,16 @@ import * as landingCrown from './pixelfx/fx/custom/landing-crown.js';
 import * as soulShatter from './pixelfx/fx/custom/soul-shatter.js';
 import * as cleaveContact from './pixelfx/fx/custom/cleave-contact.js';
 
-const W=480,H=270, FLOOR=232, TAU=Math.PI*2;
+let W=480,H=270,worldOffset=0,cameraLead=.32;
+const FLOOR=232, TAU=Math.PI*2;
+const viewport=document.querySelector('#viewport');
 const canvas=document.querySelector('#game');
 const ctx=canvas.getContext('2d',{alpha:false});
 ctx.imageSmoothingEnabled=false;
 const fxCanvas=document.createElement('canvas');fxCanvas.width=W;fxCanvas.height=H;
 const fxCtx=fxCanvas.getContext('2d',{alpha:true,willReadFrequently:false});
-const fxFrame=createFrame(W,H), fxPixels=fxCtx.createImageData(W,H);
-const art=createArt(ctx,W,H);
+let fxFrame=createFrame(W,H),fxPixels=fxCtx.createImageData(W,H);
+let art=createArt(ctx,W,H);
 const overlay=document.querySelector('#overlay'), hud=document.querySelector('#hud');
 const heartsEl=document.querySelector('#hearts'), shardEl=document.querySelector('#shard-count'),stageEl=document.querySelector('#stage-name');
 const menuTitle=document.querySelector('#menu-title'),menuDesc=document.querySelector('#menu-description'),menuTag=document.querySelector('#menu-tag');
@@ -73,7 +76,24 @@ function musicTick(dt){
  o.start(at);o.stop(at+.33);
 }
 function startAudio(){if(!sound)return;try{ac??=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume()}catch{sound=false}}
-function updateSound(){soundBtn.textContent=sound?'♫ SOUND ON':'♫ SOUND OFF';try{localStorage.setItem('shard-runner-sound',sound?'on':'off')}catch{}}
+function updateSound(){
+ soundBtn.textContent=sound?'♫':'♪';
+ soundBtn.title=sound?'Mute music and sound':'Enable music and sound';
+ soundBtn.setAttribute('aria-label',soundBtn.title);
+ try{localStorage.setItem('shard-runner-sound',sound?'on':'off')}catch{}
+}
+function resizeGame(){
+ const bounds=viewport.getBoundingClientRect();
+ if(bounds.width<1||bounds.height<1)return;
+ const next=calculateGameViewport(bounds.width,bounds.height);
+ if(next.width===W&&next.height===H&&next.worldOffset===worldOffset)return;
+ W=next.width;H=next.height;worldOffset=next.worldOffset;cameraLead=next.cameraLead;
+ canvas.width=W;canvas.height=H;ctx.imageSmoothingEnabled=false;
+ fxCanvas.width=W;fxCanvas.height=H;
+ fxFrame=createFrame(W,H);fxPixels=fxCtx.createImageData(W,H);
+ art=createArt(ctx,W,H);
+ if(player&&level)camera=clamp(player.x-W*cameraLead,0,Math.max(0,level.end-W+80));
+}
 function spawn(mod,x,y,opts={},loop=false){
  if(fxList.length>28)fxList=fxList.filter(e=>e.loop||e.age<.65);
  const fx=createFx(mod,{x:0,y:0,seed:Math.floor(hash(x*3+y+clock)*100000),...opts});
@@ -149,7 +169,7 @@ function hurt(){
  spawn(hitSpark,player.x+6,player.y+9,{palette:palettes.amber,height:15,light:.55});sfx('hurt');
  updateHUD();
  if(player.hp<=0){showMenu('dead');return}
- player.x=player.checkpoint;player.y=FLOOR-38;player.vy=-45;player.vx=0;camera=clamp(player.x-135,0,level.end-W+80);
+ player.x=player.checkpoint;player.y=FLOOR-38;player.vy=-45;player.vx=0;camera=clamp(player.x-W*cameraLead,0,Math.max(0,level.end-W+80));
  notify('CHECKPOINT RESTORED');
 }
 function collect(gem){
@@ -272,7 +292,7 @@ function step(dt){
  fxList=fxList.filter(f=>f.loop||!f.fx.done());
  for(const v of particles){v.x+=v.vx*dt;v.y+=v.vy*dt;v.vy+=165*dt;v.life-=dt}
  particles=particles.filter(v=>v.life>0);
- camera=lerp(camera,clamp(p.x-145,0,Math.max(0,level.end-W+80)),clamp(dt*6.2,0,1));
+ camera=lerp(camera,clamp(p.x-W*cameraLead,0,Math.max(0,level.end-W+80)),clamp(dt*6.2,0,1));
 }
 function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.ceil(w),Math.ceil(h))}
 function poly(points,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(Math.round(points[0][0]),Math.round(points[0][1]));for(let i=1;i<points.length;i++)ctx.lineTo(Math.round(points[i][0]),Math.round(points[i][1]));ctx.closePath();ctx.fill()}
@@ -444,7 +464,7 @@ function drawVfx(){
  for(const item of fxList){
   const x=item.x-camera;
   if(x<-190||x>W+190)continue;
-  item.fx.options.x=Math.round(x);item.fx.options.y=Math.round(item.y);visible++;
+  item.fx.options.x=Math.round(x);item.fx.options.y=Math.round(item.y+worldOffset);visible++;
   try{item.fx.draw(fxFrame)}catch(err){if(!item.reported){console.error('PixelFX:',err);item.reported=true}}
  }
  if(visible){
@@ -457,12 +477,19 @@ function render(){
  if(!level)return;
  ctx.save();
  if(shake>0&&mode==='playing')ctx.translate(Math.round((hash(clock*37)-.5)*shake*2),Math.round((hash(clock*46)-.5)*shake*1.5));
- art.background(level.theme,stage,camera,clock);
+ art.background(level.theme,stage,camera,clock,worldOffset);
+ ctx.save();
+ ctx.translate(0,worldOffset);
  art.goal(level,camera,clock,shards,player);
  art.terrain(level,camera,clock);
  for(const item of level.gems)art.gem(item,camera,clock,stage);
  for(const e of level.foes)art.enemy(e,camera,clock,stage);
- art.hero(player,camera,clock,stage);drawParticles();drawVfx();art.foreground(stage,clock);
+ art.hero(player,camera,clock,stage);
+ drawParticles();
+ ctx.restore();
+ // Composite VFX in full-screen coordinates, not in the translated world.
+ drawVfx();
+ art.foreground(stage,clock);
  if(flash>0){ctx.globalAlpha=flash*.20;rect(0,0,W,H,'#d0ffff');ctx.globalAlpha=1}
  // progress bar painted into the world so no huge HUD
  rect(0,H-3,W,3,'#0a1121');rect(0,H-3,Math.round(W*clamp(player.x/level.end,0,1)),3,level.theme.accent);
@@ -494,13 +521,37 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('keyup',e=>{const a=normalizeKey(e);if(a==='left'||a==='right')keys[a]=false});
 window.addEventListener('blur',()=>{keys.left=keys.right=false;touch.left=touch.right=false;if(mode==='playing')pause()});
+// Prevent browser zoom, scrolling and iOS long-press selection during gameplay.
+for(const eventName of ['gesturestart','gesturechange','gestureend']){
+ viewport.addEventListener(eventName,e=>{if(e.cancelable)e.preventDefault()},{passive:false});
+}
+viewport.addEventListener('dblclick',e=>e.preventDefault());
+viewport.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault()},{passive:false});
+viewport.addEventListener('contextmenu',e=>e.preventDefault());
 for(const btn of document.querySelectorAll('[data-action]')){
  const a=btn.dataset.action;
- btn.addEventListener('pointerdown',e=>{e.preventDefault();btn.setPointerCapture(e.pointerId);if(a==='jump')queuedJump=true;else if(a==='dash')queuedDash=true;else touch[a]=true});
- for(const evt of ['pointerup','pointercancel','lostpointercapture'])btn.addEventListener(evt,()=>{if(a==='left'||a==='right')touch[a]=false});
+ btn.addEventListener('pointerdown',e=>{e.preventDefault();btn.setPointerCapture(e.pointerId);btn.classList.add('pressed');if(a==='jump')queuedJump=true;else if(a==='dash')queuedDash=true;else touch[a]=true});
+ for(const evt of ['pointerup','pointercancel','lostpointercapture'])btn.addEventListener(evt,()=>{btn.classList.remove('pressed');if(a==='left'||a==='right')touch[a]=false});
 }
 primaryBtn.addEventListener('click',()=>onPrimary());
 secondaryBtn.addEventListener('click',()=>onSecondary());
 document.querySelector('#pause-btn').addEventListener('click',pause);
 soundBtn.addEventListener('click',()=>{sound=!sound;updateSound();if(sound)startAudio()});
-updateSound();setupLevel(highestUnlock);showMenu('menu');requestAnimationFrame(loop);
+const fullscreenBtn=document.querySelector('#fullscreen-btn');
+const fullscreenAvailable=!!(document.fullscreenEnabled&&viewport.requestFullscreen);
+if(!fullscreenAvailable)fullscreenBtn.classList.add('hidden');
+fullscreenBtn.addEventListener('click',async()=>{
+ try{
+  if(document.fullscreenElement)await document.exitFullscreen();
+  else await viewport.requestFullscreen({navigationUI:'hide'});
+ }catch(err){console.warn('Browser fullscreen not available:',err)}
+});
+document.addEventListener('fullscreenchange',()=>{
+ fullscreenBtn.title=document.fullscreenElement?'Exit fullscreen':'Fullscreen';
+ resizeGame();
+});
+window.addEventListener('resize',resizeGame,{passive:true});
+window.addEventListener('orientationchange',()=>requestAnimationFrame(resizeGame));
+if(window.visualViewport)window.visualViewport.addEventListener('resize',resizeGame,{passive:true});
+if(window.ResizeObserver)new window.ResizeObserver(resizeGame).observe(viewport);
+updateSound();resizeGame();setupLevel(highestUnlock);showMenu('menu');requestAnimationFrame(loop);
