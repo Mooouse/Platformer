@@ -2,6 +2,7 @@
 // PixelFX's rig is used directly for the animated hero: no placeholder rectangles.
 // Scene is hand-rasterized in the same low-resolution, hard-edged ink/shading language.
 import { posed, DUMMY_PAL, hex } from './pixelfx/core/index.js';
+import { act as cleaveAct } from './pixelfx/fx/custom/cleave-contact.js';
 
 export function createArt(ctx, W=480, H=270) {
   const PI=Math.PI,TAU=PI*2;
@@ -226,8 +227,8 @@ export function createArt(ctx, W=480, H=270) {
   let bodyCache=new Map();
   function poseSprite(frame,face,type=0){
     const k=frame+','+face+','+type;if(bodyCache.has(k))return bodyCache.get(k);
-    const phase=frame/8*TAU,run=type===1,air=type===2,dash=type===3;
-    const p={
+    const phase=frame/8*TAU,run=type===1,air=type===2,dash=type===3,windup=type===4;
+    const p=windup||dash ? {...cleaveAct.poses[windup?0:1][1],face} : {
       face,
       crouch:dash?7:air?1:run?3+Math.round(Math.sin(phase)*2):3,
       lean:dash?10:air?-2:run?5:1,
@@ -258,11 +259,15 @@ export function createArt(ctx, W=480, H=270) {
   }
   function hero(player,camera,t,theme){
     const footX=Math.round(player.x+6-camera),footY=Math.round(player.y+player.h);
-    const type=player.dash>0?3:!player.grounded?2:Math.abs(player.vx)>20?1:0;
+    const type=player.windup>0?4:player.dash>0?3:!player.grounded?2:Math.abs(player.vx)>20?1:0;
     const frame=type===1?Math.floor(t*12)%8:type===3?1:0;
     const sprite=poseSprite(frame,player.face,type),p=palettes[theme];
     // Intentional contact shadow to anchor the animated 3D rig.
     ctx.globalAlpha=.38;px(footX-10,footY+1,20,2,p.ink);ctx.globalAlpha=1;
+    if(player.windup>0){
+      light(footX+player.face*13,footY-24,18,p.spark,.13);
+      px(footX+player.face*17,footY-27,2,2,p.hi);
+    }
     if(player.dash>0){
       for(let i=3;i>=1;i--){
         ctx.globalAlpha=.11/i;
@@ -272,7 +277,7 @@ export function createArt(ctx, W=480, H=270) {
     }
     ctx.drawImage(sprite,footX-39,footY-60);
     // Hand-pixelled cape/scarf silhouette, with movement response.
-    const sway=player.dash>0?13:Math.abs(player.vx)>35?8:4,sign=player.face;
+    const sway=player.dash>0?13:player.windup>0?3:Math.abs(player.vx)>35?8:4,sign=player.face;
     path([[footX-sign*4,footY-27],[footX-sign*(sway+6),footY-24+Math.round(Math.sin(t*9)*2)],[footX-sign*(sway+3),footY-20],[footX-sign*2,footY-20]],'#163a51');
     px(footX-sign*(sway+2),footY-24+Math.round(Math.sin(t*9)*2),4,2,p.spark);
   }
