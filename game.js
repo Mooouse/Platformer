@@ -203,11 +203,78 @@ function completeLevel(){
   highestUnlock=Math.max(highestUnlock,stage+1);showMenu('won');
  }
 }
+// Timers run at the same clock as player physics. Every trap visibly
+// telegraphs its attack, so harder sections remain learnable.
+function advanceHazards(dt){
+ const p=player;
+ p.springCooldown=Math.max(0,p.springCooldown-dt);
+ for(const s of level.solids){
+  if(advanceCrumble(s,dt,level.crumbleDelay)){
+   spawn(landingCrown,s.x+s.w*.5,s.y,{palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,light:.36,force:.85});
+   dust(s.x+s.w*.5,s.y+8,level.theme.blocks[2],11,.55);
+  }
+ }
+ for(const spring of level.springs)spring.cooldown=Math.max(0,spring.cooldown-dt);
+ for(const laser of level.lasers)laser.phase=(laser.phase+dt)%laser.period;
+ for(const m of level.meteors){
+  if(m.phase==='ready'){
+   m.cooldown=Math.max(0,m.cooldown-dt);
+   if(m.cooldown<=0&&Math.abs(p.x-m.x)<180){
+    m.phase='warning';m.timer=.72;
+   }
+  } else if(m.phase==='warning'){
+   m.timer-=dt;
+   if(m.timer<=0){m.phase='falling';m.y=-38}
+  } else if(m.phase==='falling'){
+   m.y+=350*dt;
+   if(m.y>=FLOOR-5){
+    m.phase='ready';m.cooldown=2.45+stage*.15;m.y=FLOOR;
+    const palette=stage===1?palettes.amber:palettes.lilac;
+    spawn(smallExplosion,m.x,FLOOR-2,{palette,light:.60});
+    dust(m.x,FLOOR-4,level.theme.accent,13,.9);
+    shake=Math.max(shake,1.0);
+    if(Math.abs(p.x+6-m.x)<19&&p.y+p.h>FLOOR-30)hurt();
+   }
+  }
+ }
+}
+function checkChallenges(p){
+ const pal=stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua;
+ for(const spring of level.springs){
+  if(spring.cooldown>0||p.springCooldown>0||p.vy<0)continue;
+  if(Math.abs(p.x+6-spring.x)<13&&p.y+p.h>=FLOOR-13&&p.y+p.h<=FLOOR+7){
+   p.vy=-370;p.grounded=false;p.jumps=1;
+   spring.cooldown=.72;p.springCooldown=.32;
+   spawn(jumpBloom,spring.x,FLOOR-2,{palette:pal,light:1.05,power:1.35});
+   spawn(collectBurst,spring.x,FLOOR-7,{palette:pal,light:.75});
+   dust(spring.x,FLOOR-7,level.theme.accent,9,.62);sfx('jump');
+  }
+ }
+ for(const gate of level.gates){
+  if(gate.broken||!overlap(p.x,p.y,p.w,p.h,gate.x-5,FLOOR-72,10,72))continue;
+  if(p.dash>0){
+   gate.broken=true;shake=Math.max(shake,1.8);hitStop=.055;
+   spawn(cleaveContact,gate.x,FLOOR-33,{flip:p.face<0,palette:pal,light:1});
+   spawn(soulShatter,gate.x,FLOOR-34,{palette:pal,light:.65});
+   dust(gate.x,FLOOR-36,level.theme.accent,12,.75);sfx('hit');
+  } else {
+   p.x=p.x+6<gate.x?gate.x-5-p.w:gate.x+5;
+   p.vx=0;
+  }
+ }
+ for(const laser of level.lasers){
+  if(laserStatus(laser)!=='active')continue;
+  if(overlap(p.x+2,p.y+2,8,p.h-3,laser.x-4,FLOOR-66,8,66)&&p.dash<=0)hurt();
+ }
+ for(const m of level.meteors){
+  if(m.phase==='falling'&&overlap(p.x+2,p.y+3,8,p.h-5,m.x-7,m.y-8,14,16)&&p.dash<=0)hurt();
+ }
+}
 function step(dt){
  if(mode==='playing'&&hitStop>0){hitStop=Math.max(0,hitStop-dt);return;}
  clock+=dt;
  if(mode!=='playing')return;
- musicTick(dt);
+ musicTick(dt);advanceHazards(dt);
  if(toastTime>0){toastTime-=dt;if(toastTime<=0)hideToast()}
  player.invuln=Math.max(0,player.invuln-dt);
  player.dashCD=Math.max(0,player.dashCD-dt);
@@ -261,18 +328,25 @@ function step(dt){
  p.grounded=false;
  if(p.vy>=0){
   for(const s of level.solids){
+   if(s.active===false)continue;
    if(p.x+p.w<s.x+2||p.x>s.x+s.w-2)continue;
    if(prevBottom<=s.y+7&&p.y+p.h>=s.y&&p.y+p.h<s.y+28){
     if(p.vy>150){
      spawn(landingCrown,p.x+6,s.y,{palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,force:clamp(p.vy/280,.75,1.3),light:.58});
      if(p.vy>300)shake=Math.max(shake,1.1);
     }
-    p.y=s.y-p.h;p.vy=0;p.grounded=true;p.jumps=0;break;
+    p.y=s.y-p.h;p.vy=0;p.grounded=true;p.jumps=0;
+    if(triggerCrumble(s,level.crumbleDelay)){
+      dust(s.x+s.w*.5,s.y,level.theme.accent,4,.25);
+    }
+    break;
    }
   }
  }
  if(p.grounded&&Math.abs(p.vx)>30){p.runT+=dt;if(p.runT>.14){p.runT=0;dust(p.x+6,p.y+22,level.theme.blocks[1],2,.23)}}
- if(p.y>H+42){hurt();if(mode==='playing'){p.y=FLOOR-35;p.vy=0}}
+ if(p.y>FLOOR+90){hurt();if(mode==='playing'){p.y=FLOOR-35;p.vy=0}}
+ if(mode!=='playing')return;
+ checkChallenges(p);
  if(mode!=='playing')return;
  for(const enemy of level.foes){
   if(!enemy.alive)continue;
