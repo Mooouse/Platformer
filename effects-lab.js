@@ -20,7 +20,7 @@ const scenes=[
 const cards=[],container=document.querySelector("#grid");
 let theme=0,last=0,acc=0;
 function makeFx(scene,seed=31){
- return createFx(scene.mod,{x:94,y:96,seed,palette:palettes[theme],light:.85});
+ return createFx(scene.mod,{x:94,y:scene.id==='cleave-contact'?77:96,seed,palette:palettes[theme],light:.85});
 }
 for(const scene of scenes){
  const card=document.createElement("article");card.className="card";
