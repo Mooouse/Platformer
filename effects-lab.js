@@ -3,6 +3,7 @@ import * as dash from './pixelfx/fx/custom/dash-wake.js';
 import * as jump from './pixelfx/fx/custom/jump-bloom.js';
 import * as land from './pixelfx/fx/custom/landing-crown.js';
 import * as shatter from './pixelfx/fx/custom/soul-shatter.js';
+import * as cleave from './pixelfx/fx/custom/cleave-contact.js';
 
 const palettes=[
  ["#102941","#1d4d6a","#2b7b9b","#42b6c0","#75e8dd","#bbfff0","#ffffff"],
@@ -13,7 +14,8 @@ const scenes=[
  {id:"dash-wake",title:"01 / DASH WAKE",desc:"An instant pressure cut, two crescent wakes and flying glass filaments. The release lasts only a handful of frames.",mod:dash},
  {id:"jump-bloom",title:"02 / JUMP BLOOM",desc:"A luminous takeoff: floor rings roll in depth while gravity tugs the motes back.",mod:jump},
  {id:"landing-crown",title:"03 / LANDING CROWN",desc:"A heavy contact frame breaks into shallow shock rings, dust volumes and tumbling stones.",mod:land},
- {id:"soul-shatter",title:"04 / SOUL SHATTER",desc:"A guardian breaks apart in asymmetric glass wedges; high-energy white gives way to a long soft decay.",mod:shatter}
+ {id:"soul-shatter",title:"04 / SOUL SHATTER",desc:"A guardian breaks apart in asymmetric glass wedges; high-energy white gives way to a long soft decay.",mod:shatter},
+ {id:"cleave-contact",title:"05 / CLEAVE CONTACT",desc:"The sword connects: a one-frame white seam, glass pressure crescents and weighted bright fragments with soft vapour.",mod:cleave}
 ];
 const cards=[],container=document.querySelector("#grid");
 let theme=0,last=0,acc=0;
