@@ -37,10 +37,10 @@ test('Game surface prevents double-tap zoom and keeps touch controls',()=>{
  assert.match(css,/\.mobile-controls button\{[^}]*touch-action:none/);
  const guards=readFileSync(new URL('../touch-guards.js',import.meta.url),'utf8');
  assert.match(game,/installGameTouchGuards/);
- assert.match(guards,/doc\\.addEventListener\\('dblclick'/);
- assert.match(guards,/root\\.addEventListener\\('touchmove'/);
- assert.match(guards,/doc\\.addEventListener\\('selectstart'/);
- assert.match(guards,/doc\\.addEventListener\\('contextmenu'/);
+ assert.match(guards,/doc\.addEventListener\('dblclick'/);
+ assert.match(guards,/root\.addEventListener\('touchmove'/);
+ assert.match(guards,/doc\.addEventListener\('selectstart'/);
+ assert.match(guards,/doc\.addEventListener\('contextmenu'/);
  assert.match(css,/-webkit-user-select:none!important/);
  assert.match(css,/-webkit-touch-callout:none!important/);
  assert.match(game,/calculateGameViewport\(/);
