@@ -120,6 +120,7 @@ export function createArt(ctx, W=480, H=270) {
   function terrain(level,camera,t){
     const p=palettes[level.stage??0];
     for(const s of level.solids) {
+      if(s.active===false)continue;
       const x=Math.round(s.x-camera),end=x+s.w;
       if(end<0||x>W)continue;
       const top=s.y, h=Math.min(s.h,H-top+12),floating=!s.ground;
@@ -310,7 +311,18 @@ export function createArt(ctx, W=480, H=270) {
       path([[x+9,y-9],[x+12,y-13],[x+3,y-10]],p.ink);
       px(x-10,y-1,3,4,p.edge);px(x+8,y-1,3,4,p.edge);
     }
-    light(x,y,24,p.spark,.10);
+    if(e.elite){
+      // Two crystal horns, an armored crest and an illuminated health notch.
+      path([[x-10,y-6],[x-15,y-17],[x-3,y-12]],p.ink);
+      path([[x+10,y-6],[x+15,y-17],[x+3,y-12]],p.ink);
+      path([[x-9,y-9],[x-12,y-15],[x-4,y-11]],p.edge);
+      path([[x+9,y-9],[x+12,y-15],[x+4,y-11]],p.edge);
+      px(x-11,y-16,22,3,p.ink);
+      px(x-9,y-15,18,1,p.spark);
+      if(e.hp>1){px(x-9,y-15,18,1,'#ffffff');}
+      else{px(x-9,y-15,9,1,p.spark);}
+      light(x,y-7,20,p.spark,.19);
+    }else light(x,y,24,p.spark,.10);
   }
   function gem(g,camera,t,stage){
     if(g.taken)return;
