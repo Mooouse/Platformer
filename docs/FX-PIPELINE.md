@@ -1,4 +1,4 @@
-# Original FX pipeline — SHARD RUNNER
+# Original FX pipeline — TRY AGAIN
 
 This is the project's **local addendum** to the upstream [PixelFX skill](../skills/pixelfx/SKILL.md) and [authoring contract](AUTHORING.md).
 
