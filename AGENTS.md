@@ -1,4 +1,4 @@
-# Agent instructions — SHARD RUNNER
+# Agent instructions — TRY AGAIN
 
 This repository is a real, playable HTML5 platformer. When asked to improve it, change the working game and commit, not merely describe a plan.
 
