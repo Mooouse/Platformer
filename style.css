@@ -1,13 +1,23 @@
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Press+Start+2P&display=swap');
 :root{color-scheme:dark;font-family:'Space Grotesk',system-ui,sans-serif;background:#080e20;color:#f2f6ff}
-*{box-sizing:border-box}
+/* Safari/WebKit: don't let any HUD label, canvas or icon become a text
+   selection, callout menu, draggable item or focus zoom target. */
+*,*::before,*::after{
+  box-sizing:border-box;
+  -webkit-user-select:none!important;
+  user-select:none!important;
+  -webkit-touch-callout:none!important;
+  -webkit-tap-highlight-color:transparent;
+}
+img,svg,canvas{-webkit-user-drag:none;user-drag:none;}
 html,body{margin:0;width:100%;height:100%;overscroll-behavior:none;overflow:hidden}
 html{-webkit-text-size-adjust:100%}
 body{background:#080e20;position:fixed;inset:0;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:none}
 #shell,#viewport{position:absolute;inset:0;width:100%;height:100%;height:100dvh;overflow:hidden;touch-action:none}
 #viewport{background:#101a33;isolation:isolate}
 #game{width:100%;height:100%;display:block;object-fit:fill;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;user-select:none;-webkit-user-select:none}
-button{font-family:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button,a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;cursor:pointer}
 button:focus-visible,a:focus-visible{outline:3px solid #b5fff1;outline-offset:2px}
 #hud{position:absolute;top:0;right:0;left:0;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;z-index:4;pointer-events:none;padding:calc(max(10px,env(safe-area-inset-top)) + 5px) max(12px,env(safe-area-inset-right)) 10px max(12px,env(safe-area-inset-left));font-size:clamp(12px,1.3vw,18px);font-weight:700;letter-spacing:.8px;text-shadow:0 2px 4px #000b}
 .hud-left{display:flex;align-items:center;gap:9px;background:#091425c9;border:1px solid #a8dbe469;border-radius:8px;padding:10px 13px;box-shadow:0 5px 20px #0005;backdrop-filter:blur(7px)}
@@ -85,3 +95,6 @@ kbd{background:#2f3955;border:1px solid #7786ad;border-bottom-width:3px;border-r
  .mobile-controls button{width:67px;height:74px}
 }
 @media (prefers-reduced-motion:reduce){.overlay,.main-btn{animation:none;transition:none}}
+
+/* Keep game controls from triggering platform zoom / selection on rapid taps. */
+#viewport,#shell,#game,#hud,.overlay,.menu-content,.mobile-controls,.mobile-controls *{overscroll-behavior:none;-webkit-touch-callout:none;}
