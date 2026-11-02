@@ -18,6 +18,18 @@ Five **original, hand-coded PixelFX effects** written expressly for this game an
 
 These are integrated into `game.js`, alongside selected upstream PixelFX effects. The FX Lab renders their **real code**, with replay and palette switching between the three worlds. Contact sheets are built on deployment and served at `records/custom/<effect>/contact.png`.
 
+## Fullscreen and mobile controls
+
+The game now fills the whole available browser viewport rather than living inside a 16:9 framed box. The HTML5 canvas changes its **native logical resolution** to match screen proportions, so square pixels remain square and the camera sees more of a wide landscape level. In portrait mode the renderer extends the vertical sky above the level while preserving all world positions. UI respects the device notch and home-indicator safe areas.
+
+Touch input supports two thumbs simultaneously, moving a held thumb from LEFT to RIGHT, one-tap jumping, and the dash button. The gameplay surface disables unwanted page scrolling, long-press selection, pinch and double-tap zoom.
+
+On devices supporting the Fullscreen API, use the game HUD expand icon. On iOS where browser fullscreen is restricted, choose **Share → Add to Home Screen** in Safari and launch from the new home screen icon for a standalone game window. Browser chrome cannot be removed by web code inside every third-party in-app browser.
+
+### Mobile regression check
+
+`node --test tests/mobile.test.js` exercises portrait and landscape iPhone proportions, desktop 16:9, tablet sizes, square-pixel ratios, ground placement and touch gesture guards.
+
 ## Controls
 
 | Key | Action |
