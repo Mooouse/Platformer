@@ -2,6 +2,7 @@ import {createFrame, clearFrame, createFx, composite} from './pixelfx/core/index
 import {createArt} from './art.js';
 import {calculateGameViewport} from './mobile-layout.js';
 import {installGameTouchGuards} from './touch-guards.js';
+import {makeChallenges,laserStatus,advanceCrumble,triggerCrumble} from './challenge.js';
 import * as collectBurst from './pixelfx/fx/pickups/collect-burst.js';
 import * as hitSpark from './pixelfx/fx/impacts/hit-spark.js';
 import * as swordSlash from './pixelfx/fx/melee/sword-slash.js';
@@ -45,9 +46,9 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),lerp=(a,b,t)=>a+(b-a)*t;
 const hash=(n)=>{const v=Math.sin(n*127.1+78.233)*43758.5453;return v-Math.floor(v)};
 const overlap=(ax,ay,aw,ah,bx,by,bw,bh)=>ax<bx+bw&&ax+aw>bx&&ay<by+bh&&ay+ah>by;
 let mode='menu',stage=0,level=null,player=null,camera=0,clock=0,last=0,raf=0,shake=0,flash=0;
-let fxList=[],shards=0,toastTime=0,gateHintTime=0,particles=[],shootTime=0,hitStop=0;
+let fxList=[],shards=0,toastTime=0,gateHintTime=0,particles=[],shootTime=0,hitStop=0,attempts=0;
 let highestUnlock=0,sound=true,ac=null,musicT=0,musicStep=0;
-try{highestUnlock=clamp(Number(localStorage.getItem('shard-runner-unlock')||0),0,2);sound=localStorage.getItem('shard-runner-sound')!=='off'}catch{}
+try{highestUnlock=clamp(Number(localStorage.getItem('try-again-unlock')||localStorage.getItem('shard-runner-unlock')||0),0,2);sound=(localStorage.getItem('try-again-sound')??localStorage.getItem('shard-runner-sound'))!=='off'}catch{}
 const keys={left:false,right:false},touch={left:false,right:false};
 let queuedJump=false,queuedDash=false,onPrimary=()=>{},onSecondary=()=>{};
 const palettes={
@@ -81,7 +82,7 @@ function updateSound(){
  soundBtn.textContent=sound?'♫':'♪';
  soundBtn.title=sound?'Mute music and sound':'Enable music and sound';
  soundBtn.setAttribute('aria-label',soundBtn.title);
- try{localStorage.setItem('shard-runner-sound',sound?'on':'off')}catch{}
+ try{localStorage.setItem('try-again-sound',sound?'on':'off')}catch{}
 }
 function resizeGame(){
  const bounds=viewport.getBoundingClientRect();
@@ -108,14 +109,16 @@ function dust(x,y,c,n=6,power=1){
 function notify(message,duration=1.8){toastEl.textContent=message;toastEl.classList.remove('hidden');toastTime=duration}
 function hideToast(){toastTime=0;toastEl.classList.add('hidden')}
 function setupLevel(index){
- stage=index;const src=rawLevels[stage],theme=colorSets[stage];
+ stage=index;const src=rawLevels[stage],theme=colorSets[stage],challenge=makeChallenges(index,src.platforms);
  level={...src,theme,stage:index,
-  solids:[...src.ground.map(([x,w])=>({x,y:FLOOR,w,h:100,ground:true})),
-    ...src.platforms.map(([x,y,w])=>({x,y,w,h:11,ground:false}))],
+  solids:[...src.ground.map(([x,w])=>({x,y:FLOOR,w,h:100,ground:true,active:true})),
+    ...challenge.solids],
+  springs:challenge.springs,gates:challenge.gates,lasers:challenge.lasers,meteors:challenge.meteors,
+  crumbleDelay:challenge.crumbleDelay,
   gems:src.gems.map(([x,y])=>({x,y,taken:false})),
-  foes:src.foes.map(([x,y,min,max,speed,flying])=>({x,y,min,max,speed,flying,baseY:y,dir:hash(x)>0.5?1:-1,alive:true,hit:0})),
+  foes:src.foes.map(([x,y,min,max,speed,flying],i)=>({x,y,min,max,speed:speed*(1+.07*stage),flying,baseY:y,dir:hash(x)>0.5?1:-1,alive:true,hit:0,elite:challenge.elites.has(i),hp:challenge.elites.has(i)?2:1})),
   activeCheckpoints:new Set()};
- player={x:48,y:FLOOR-22,w:12,h:22,vx:0,vy:0,face:1,grounded:false,coyote:0,jumps:0,dash:0,dashCD:0,invuln:0,hp:3,checkpoint:48,runT:0,windup:0};
+ player={x:48,y:FLOOR-22,w:12,h:22,vx:0,vy:0,face:1,grounded:false,coyote:0,jumps:0,dash:0,dashCD:0,invuln:0,hp:stage===2?2:3,checkpoint:48,runT:0,windup:0,springCooldown:0};
  camera=0;shake=0;flash=0;shards=0;fxList=[];particles=[];hideToast();gateHintTime=0;shootTime=0;hitStop=0;
  spawn(arcanePortal,level.end,FLOOR-4,{width:15,height:27,palette:stage===1?palettes.amber:stage===2?palettes.lilac:palettes.aqua,light:.85},true);
  spawn(teleportPad,level.end,FLOOR,{palette:stage===1?palettes.amber:palettes.aqua,light:.58},true);
@@ -124,7 +127,7 @@ function setupLevel(index){
 }
 function updateHUD(){
  if(!player)return;
- heartsEl.textContent=('♥ '.repeat(Math.max(0,player.hp))+'♡ '.repeat(3-player.hp)).trim();
+ heartsEl.textContent=('♥ '.repeat(Math.max(0,player.hp))+'♡ '.repeat((stage===2?2:3)-player.hp)).trim();
  shardEl.textContent=shards+' / 3';
  stageEl.textContent=String(stage+1).padStart(2,'0')+' / '+colorSets[stage].name;
 }
@@ -133,10 +136,10 @@ function showMenu(kind='menu'){
  secondaryBtn.classList.add('hidden');
  menuStats.style.display='';menuHint.style.display='';
  if(kind==='menu'){
-  menuTag.textContent='A PIXELFX ACTION PLATFORMER';
-  menuTitle.innerHTML='SHARD<span>RUNNER</span>';
-  menuDesc.innerHTML='Three lost realms. One last spark.<br>Run, double-jump and dash through the ruins.';
-  primaryBtn.innerHTML=highestUnlock?'CONTINUE — REALM '+(highestUnlock+1)+' <span>➜</span>':'BEGIN THE JOURNEY <span>➜</span>';
+  menuTag.textContent='HARDCORE PIXEL PLATFORMER · EVERY TRY COUNTS';
+  menuTitle.innerHTML='TRY<span>AGAIN</span>';
+  menuDesc.innerHTML='Three dangerous worlds. Every mistake matters.<br>Jump. Dash. Learn the traps. Try again.';
+  primaryBtn.innerHTML=highestUnlock?'CONTINUE — WORLD '+(highestUnlock+1)+' <span>➜</span>':'LET’S TRY <span>➜</span>';
   onPrimary=()=>startGame(highestUnlock);
  } else if(kind==='paused'){
   menuTag.textContent='THE WORLD IS WAITING';menuTitle.innerHTML='PAU<span>SED</span>';
@@ -144,8 +147,8 @@ function showMenu(kind='menu'){
   secondaryBtn.classList.remove('hidden');secondaryBtn.textContent='RESTART LEVEL';
   onPrimary=()=>resume();onSecondary=()=>startGame(stage);
  } else if(kind==='dead'){
-  menuTag.textContent='YOUR LIGHT STILL BURNS';menuTitle.innerHTML='TRY<span>AGAIN</span>';
-  menuDesc.textContent='The shadows won this round. Every run brings you closer.';
+  menuTag.textContent='ATTEMPT '+attempts+' · LEARN THE PATTERN';menuTitle.innerHTML='TRY<span>AGAIN</span>';
+  menuDesc.textContent='That was one attempt. The next one can be better. Press R or tap retry.';
   primaryBtn.innerHTML='RETRY REALM <span>➜</span>';onPrimary=()=>startGame(stage);
  } else if(kind==='won'){
   menuTag.textContent='REALM CLEARED';menuTitle.innerHTML='GATE<span>OPEN</span>';
@@ -159,7 +162,7 @@ function showMenu(kind='menu'){
  if(kind!=='menu'){menuStats.style.display='none';menuHint.style.display='none';}
 }
 function startGame(index=0){
- startAudio();setupLevel(index);mode='playing';overlay.classList.add('hidden');hud.classList.remove('hidden');
+ startAudio();if(mode==='menu'||mode==='won'||mode==='complete')attempts=0;attempts++;setupLevel(index);mode='playing';overlay.classList.add('hidden');hud.classList.remove('hidden');
  queuedJump=false;queuedDash=false;keys.left=keys.right=false;touch.left=touch.right=false;
 }
 function resume(){startAudio();mode='playing';overlay.classList.add('hidden');hud.classList.remove('hidden')}
@@ -190,7 +193,7 @@ function completeLevel(){
  sfx('gate');flash=.55;shake=3;
  spawn(collectBurst,level.end,FLOOR-25,{palette:palettes.aqua,light:1});
  if(stage===2){showMenu('complete')}else{
-  try{localStorage.setItem('shard-runner-unlock',String(Math.max(highestUnlock,stage+1)))}catch{}
+  try{localStorage.setItem('try-again-unlock',String(Math.max(highestUnlock,stage+1)))}catch{}
   highestUnlock=Math.max(highestUnlock,stage+1);showMenu('won');
  }
 }
